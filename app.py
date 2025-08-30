@@ -142,15 +142,6 @@ def aplicar_estilos():
         margin: 1rem 0;
     }
     
-    /* FAQ */
-    .faq-item {
-        background: white;
-        border: 1px solid #e0e0e0;
-        border-radius: 6px;
-        padding: 1rem;
-        margin: 0.5rem 0;
-    }
-    
     /* Botones */
     .stButton > button {
         background-color: #3b5998;
@@ -190,9 +181,6 @@ def inicializar_estado():
     
     if 'modo_docente' not in st.session_state:
         st.session_state.modo_docente = False
-    
-    if 'faq' not in st.session_state:
-        st.session_state.faq = []
     
     if 'objetivos_completados' not in st.session_state:
         st.session_state.objetivos_completados = {
@@ -711,79 +699,7 @@ DROP COLUMN col_existente;""", language='sql')
         mime="text/plain"
     )
 
-def vista_faq():
-    st.markdown("## Dudas & Respuestas (FAQ Viva)")
-    
-    st.markdown("""
-    Registra tus dudas aquí. El profesor las responderá y quedarán disponibles 
-    para todos los estudiantes.
-    """)
-    
-    
-    with st.form("nueva_pregunta"):
-        col1, col2 = st.columns([1, 2])
-        
-        with col1:
-            nombre = st.text_input("Nombre (opcional)", placeholder="Anónimo")
-        
-        with col2:
-            pregunta = st.text_area("Tu pregunta", placeholder="Escribe tu duda aquí...")
-        
-        enviado = st.form_submit_button("Enviar pregunta")
-        
-        if enviado and pregunta:
-            nueva_faq = {
-                'id': len(st.session_state.faq),
-                'nombre': nombre if nombre else "Anónimo",
-                'pregunta': pregunta,
-                'respuesta': "",
-                'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M"),
-                'resuelta': False
-            }
-            st.session_state.faq.append(nueva_faq)
-            st.success("Pregunta enviada correctamente")
-            st.rerun()
-    
-    st.divider()
-    
-    
-    if st.session_state.faq:
-        st.markdown("### Banco de Preguntas y Respuestas")
-        
-        for i, item in enumerate(st.session_state.faq):
-            with st.expander(f"Pregunta de {item['nombre']} - {item['timestamp']}"):
-                st.markdown(f"**Pregunta:** {item['pregunta']}")
-                
-                if st.session_state.modo_docente:
-                    # Modo docente
-                    respuesta = st.text_area(
-                        "Respuesta del docente:",
-                        value=item['respuesta'],
-                        key=f"respuesta_{i}"
-                    )
-                    
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        if st.button(f"Guardar respuesta", key=f"guardar_{i}"):
-                            st.session_state.faq[i]['respuesta'] = respuesta
-                            st.session_state.faq[i]['resuelta'] = True
-                            st.success("Respuesta guardada")
-                            st.rerun()
-                    
-                    with col2:
-                        if st.button(f"Eliminar pregunta", key=f"eliminar_{i}"):
-                            st.session_state.faq.pop(i)
-                            st.rerun()
-                else:
-                    # Modo estudiante
-                    if item['respuesta']:
-                        st.markdown(f"**Respuesta:** {item['respuesta']}")
-                        if item['resuelta']:
-                            st.success("✓ Resuelta")
-                    else:
-                        st.info("Esperando respuesta del docente...")
-    else:
-        st.info("No hay preguntas registradas aún. ¡Sé el primero en preguntar!")
+
 
 def vista_conexion():
     st.markdown("## Conexión a PostgreSQL (Opcional)")
@@ -910,9 +826,9 @@ with st.sidebar:
     vista = st.selectbox(
         "Selecciona una sección:",
         ["Inicio", "Contexto & Schema", "Ejercicios Guiados", 
-         "Práctica Autónoma", "Cheat-sheet", "FAQ", "Conexión PostgreSQL"],
+         "Práctica Autónoma", "Cheat-sheet", "Conexión PostgreSQL"],
         index=["Inicio", "Contexto & Schema", "Ejercicios Guiados", 
-               "Práctica Autónoma", "Cheat-sheet", "FAQ", 
+               "Práctica Autónoma", "Cheat-sheet", 
                "Conexión PostgreSQL"].index(st.session_state.vista_actual)
     )
     st.session_state.vista_actual = vista
@@ -988,8 +904,6 @@ elif st.session_state.vista_actual == "Práctica Autónoma":
     vista_practica_autonoma()
 elif st.session_state.vista_actual == "Cheat-sheet":
     vista_cheatsheet()
-elif st.session_state.vista_actual == "FAQ":
-    vista_faq()
 elif st.session_state.vista_actual == "Conexión PostgreSQL":
     vista_conexion()
 
